@@ -1,5 +1,5 @@
 {
-  "name": "@chargepoint/auto-pub-pkg",
+  "name": "poc_ver_pub",
   "version": "1.9.0-beta.1",
   "description": "",
   "scripts": {
@@ -35,7 +35,7 @@
   "main": "./dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ChargePoint/mono-repo-cicd-poc.git"
+    "url": "git+https://github.com/habibadeku-cpi/poc_ver_pub.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

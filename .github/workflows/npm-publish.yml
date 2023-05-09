@@ -80,8 +80,8 @@ jobs:
         # token: ${{ secrets.GH_TOKEN }}
 
     - name: Install dependencies
-      # run: rm -rf node_modules && rm -f package-lock.json && npm i
-      run: npx ci
+      run: rm -rf node_modules && rm -f package-lock.json && npm i
+      # run: np
 
     - name: Install semantic-release extra plugins
       # run: cd packages/auto-pub-pkg && npm install --save-dev @semantic-release/changelog @semantic-release/git      
