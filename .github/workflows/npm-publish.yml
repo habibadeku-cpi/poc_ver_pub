@@ -1,0 +1,235 @@
+name: Release
+
+on:
+  push:
+    branches: 
+      - main
+      - beta
+
+env:
+  # disable husky in ci
+  HUSKY: 0
+  
+  # tokens required for github, node and npm actions
+  # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  GIT_CREDENTIALS: ${{ secrets.GC_VAR }}
+  NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+  NPM_TOKEN: ${{ secrets.GH_TOKEN }}
+
+jobs:
+  # test:
+  #   name: test
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v3
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.x
+  #       registry-url: 'https://npm.pkg.github.com/'
+  #       scope: '@chargepoint'
+
+  #   - name: Install packages && semantic-release extra plugins
+  #     # run: cd packages/auto-pub-pkg && npm install --save-dev @semantic-release/changelog @semantic-release/git  
+  #     run: npm i && npm install --save-dev @semantic-release/changelog @semantic-release/git @semantic-release/exec 
+  #     shell: bash
+  #     env:
+  #       # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       # NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
+
+
+  changes:
+    runs-on: ubuntu-latest
+    name: prepare for publish for projects with updates
+    outputs:      
+      auto-pub-pkg: ${{ steps.changes.outputs.auto-pub-pkg }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        base: ${{ github.ref_name }}
+        filters: |
+          auto-pub-pkg:
+            - 'packages/auto-pub-pkg/**'
+
+  auto-pub-pkg:
+    needs: changes
+    if: ${{ needs.changes.outputs.auto-pub-pkg == 'true' }}
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: packages/auto-pub-pkg
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        registry-url: 'https://npm.pkg.github.com/'
+        scope: '@chargepoint'
+        fetch-depth: 0
+        # persist-credentials: false
+        # token: ${{ secrets.GH_TOKEN }}
+
+    - name: Install dependencies
+      # run: rm -rf node_modules && rm -f package-lock.json && npm i
+      run: npx ci
+
+    - name: Install semantic-release extra plugins
+      # run: cd packages/auto-pub-pkg && npm install --save-dev @semantic-release/changelog @semantic-release/git      
+      run: npm install --save-dev @semantic-release/changelog @semantic-release/git @semantic-release/exec      
+
+    - name: Build
+      # run: cd packages/auto-pub-pkg && npm run build      
+      run: npm run build      
+
+    - name: Release
+      run: npx semantic-release
+
+    # - name: Setup Node.js
+    #   uses: actions/setup-node@v3
+    #   with:
+    #     node-version: 18.x
+    #     registry-url: 'https://npm.pkg.github.com/'
+    #     scope: '@chargepoint'
+    #     token: ${{ secrets.GH_TOKEN }}
+
+    # - name: Prepare-Finalize
+    #   run: cd ../../ && npm install --save-dev @semantic-release/changelog @semantic-release/git @semantic-release/exec
+
+    # - name: Setup Node.js
+    #   uses: actions/setup-node@v3
+    #   with:
+    #     node-version: 18.x
+    #     registry-url: 'https://npm.pkg.github.com/'
+    #     scope: '@chargepoint'
+    #     token: ${{ secrets.GH_TOKEN }}  
+
+    # - name: Finalize
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    #     NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #     NPM_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: cd ../../ && npx semantic-release
+      # run: cd packages/auto-pub-pkg && npx semantic-release
+
+
+
+    # - name: Finalize
+    #   # move CHANGELOG.md to base directory
+    #   env:
+    #     CI_COMMIT_MESSAGE: ci move changelog to base directory [skip ci] 
+    #   run: |
+    #     git --version
+    #     git config user.name "GitHub Actions Bot"
+    #     git config user.email "<>"
+    #     git checkout ${{ github.head_ref }}
+    #     git mv CHANGELOG.md ../../
+    #     git add .
+    #     git status
+    #     git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+    #     git push
+
+
+  # auto-pub-pkg2:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.auto-pub-pkg2 == 'true' }}
+  #   runs-on: ubuntu-latest
+
+  #   defaults:
+  #     run:
+  #       working-directory: packages/auto-pub-pkg2
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v3
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.x
+  #       registry-url: 'https://npm.pkg.github.com/'
+  #       scope: '@chargepoint'
+  #       fetch-depth: 0
+  #       # persist-credentials: false
+  #       token: ${{ secrets.GH_TOKEN }}
+
+  #   - name: Install dependencies
+  #     run: npx ci
+  #     # run: rm -f package-lock.json && rm -rf node_modules && npm i
+  #   - name: Install semantic-release extra plugins
+  #     run: npm install --save-dev @semantic-release/changelog @semantic-release/git @semantic-release/exec     
+  #     # run: cd packages/auto-pub-pkg2 && npm install --save-dev @semantic-release/changelog @semantic-release/git      
+  #   - name: Build
+  #     run: npm run build      
+  #     # run: cd packages/auto-pub-pkg2 && npm run build      
+  #   - name: Release
+  #     run: npx semantic-release
+
+    # - name: Prepare-Finalize
+    #   run: cd ../../ && npm install --save-dev @semantic-release/changelog @semantic-release/git @semantic-release/exec
+
+  #   - name: Finalize
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  #       NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+  #       NPM_TOKEN: ${{ secrets.GH_TOKEN }}
+  #     run: cd ../../ && npx semantic-release
+      # run: cd packages/auto-pub-pkg2 && npx semantic-release
+
+    # - name: Finalize
+    #   # move CHANGELOG.md to base directory
+    #   env:
+    #     CI_COMMIT_MESSAGE: ci move changelog to base directory [skip ci] 
+    #   run: |
+    #     git --version
+    #     git config user.name "GitHub Actions Bot"
+    #     git config user.email "<>"
+    #     git checkout ${{ github.head_ref }}
+    #     git mv CHANGELOG.md ../../
+    #     git add .
+    #     git status
+    #     git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+    #     git push
+
+
+  # finalize:
+  #   if: ${{ always() }}
+  #   needs: [auto-pub-pkg,auto-pub-pkg2]
+  #   runs-on: ubuntu-latest
+
+  #   # defaults:
+  #   #   run:
+  #   #     working-directory: packages/manticore-template-shell
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v3
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.x
+  #       registry-url: 'https://npm.pkg.github.com/'
+  #       scope: '@chargepoint'
+  #   - name: Install dependencies
+  #     run: rm -rf node_modules && rm -f package-lock.json && npm i 
+
+  #   - name: Install semantic-release extra plugins
+  #     run: npm install --save-dev @semantic-release/changelog @semantic-release/git      
+
+  #   - name: Build
+  #     run: npm run build      
+
+  #   - name: Release
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     run: npx semantic-release

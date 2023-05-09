@@ -1,0 +1,25 @@
+{
+  "name": "poc_ver_pub",
+  "version": "0.0.0",
+  "license": "ISC",
+  "devDependencies": {
+    "@chargepoint/eslint-config-next": "^1.0.6",
+    "@commitlint/cli": "^17.6.1",
+    "@commitlint/config-conventional": "^17.6.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "husky": "^8.0.3",
+    "typescript": "^4.9.5"
+  },
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/habibadeku-cpi/poc_ver_pub.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
